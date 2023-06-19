@@ -26,6 +26,9 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/greet', (req: Request, res: Response) => {
   res.send('Hello Guys');
 });
+app.get('/time', (req: Request, res: Response) => {
+  res.json({ time: new Date().toISOString() });
+});
 
 app.listen(port, () => {
   logger.info(`[server]: Server is running at http://localhost:${port}`);
