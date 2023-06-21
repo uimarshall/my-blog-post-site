@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import logger from '../logger/logger';
+import logger from '../../logger/logger';
 const connectDb = async (): Promise<void> => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI as string);
