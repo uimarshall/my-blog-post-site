@@ -1,30 +1,30 @@
-import { Schema, type InferSchemaType, model, type Types } from 'mongoose';
+import { Schema, type InferSchemaType, model } from 'mongoose';
 import validator from 'validator';
 
-// 1. Create an interface representing a document in MongoDB.
-interface IUser {
-  firstname: string;
-  lastname: string;
-  username: string;
-  email: string;
-  password: string;
-  profile: string;
-  profilePhoto: string;
-  posts: string[];
-  postCount: number;
-  about: string;
-  isBlocked: boolean;
-  isAdmin: boolean;
-  role: string;
-  viewedBy: Types.ObjectId;
-  followers: Types.ObjectId;
-  following: Types.ObjectId;
-  active: boolean;
-  resetPasswordToken: string;
-  resetPasswordExpire: Date;
-}
+// No need to define TS interface any more. InferSchemaType will determine the type as follows:
+// User {
+//   firstname: string;
+//   lastname: string;
+//   username: string;
+//   email: string;
+//   password: string;
+//   profile: string;
+//   profilePhoto: string;
+//   posts: string[];
+//   postCount: number;
+//   about: string;
+//   isBlocked: boolean;
+//   isAdmin: boolean;
+//   role: string;
+//   viewedBy: Types.ObjectId;
+//   followers: Types.ObjectId;
+//   following: Types.ObjectId;
+//   active: boolean;
+//   resetPasswordToken: string;
+//   resetPasswordExpire: Date;
+// }
 
-const userSchema = new Schema<IUser>(
+const userSchema = new Schema(
   {
     firstname: {
       type: String,
@@ -134,4 +134,4 @@ const userSchema = new Schema<IUser>(
 );
 
 type User = InferSchemaType<typeof userSchema>;
-export default model<User, IUser>('User', userSchema);
+export default model<User>('User', userSchema);
