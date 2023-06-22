@@ -2,6 +2,7 @@ import { Schema, model, type Document, type Types } from 'mongoose';
 
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 // No need to define TS interface any more. InferSchemaType will determine the type as follows:
 export interface UserDocument extends Document {
@@ -24,9 +25,10 @@ export interface UserDocument extends Document {
   active: boolean;
   resetPasswordToken: string;
   resetPasswordExpire: Date;
+  getJwtToken: () => string;
 }
 
-const userSchema = new Schema(
+const userSchema = new Schema<UserDocument>(
   {
     firstname: {
       type: String,
@@ -151,6 +153,12 @@ userSchema.methods.comparePassword = async function (currEnteredPassword: string
   return passwordMatch;
 };
 
+// Return JWT token
+userSchema.methods.getJwtToken = function () {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET as string, {
+    expiresIn: process.env.JWT_EXPIRATION_TIME,
+  });
+};
 // type User = InferSchemaType<typeof userSchema>;
 // export default model<User>('User', userSchema);
 const User = model<UserDocument>('User', userSchema);

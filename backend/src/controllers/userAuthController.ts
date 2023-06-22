@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
 // import catchAsyncErrors from '../middlewares/catchAsyncErrors';
-import User from '../models/user';
+import User, { type UserDocument } from '../models/user';
 import { type Request, type Response } from 'express';
 
 // import ErrorHandler from '../utils/errorHandler';
@@ -11,12 +11,12 @@ import { type Request, type Response } from 'express';
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const { firstname, lastname, username, profile, email, password } = req.body;
 
-  const userExists = await User.findOne({ email });
+  // const userExists = await User.findOne({ email });
 
-  if (userExists !== null) {
-    res.status(400);
-    throw new Error('User already exists');
-  }
+  // if (userExists !== null) {
+  //   res.status(400);
+  //   throw new Error('User already exists');
+  // }
 
   const newUser = await User.create({
     firstname,
@@ -31,9 +31,11 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
     },
   });
 
+  const token = newUser.getJwtToken();
+
   res.status(201).json({
     success: true,
-    data: newUser,
+    token,
   });
 });
 
