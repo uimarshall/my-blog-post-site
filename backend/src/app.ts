@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import morganMiddleware from '../logger/morganMiddleware';
 import userRoutes from './routes/userRoutes';
+import errorMiddleware from './middlewares/errorMiddleware';
 
 // import env from './utils/validateEnv';
 
@@ -22,6 +23,9 @@ app.use(cors()); // Make sure you Enable CORS correctly, or you will get CORS er
 // Route middleware
 
 app.use('/api/v1/users', userRoutes);
+
+// Custom Error Middleware to handle error
+app.use(errorMiddleware);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Express + TypeScript Configurations + Linting + found solution, better');
