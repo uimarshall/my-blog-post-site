@@ -30,6 +30,7 @@ module.exports = {
     'arrow-body-style': 'off',
     'prefer-arrow-callback': 'off',
     '@typescript-eslint/restrict-template-expressions': 'off',
+    '@typescript-eslint/restrict-plus-operands': 'off',
   },
   ignorePatterns: ['dist/', 'build/'],
 };

@@ -1,30 +1,35 @@
-import { Schema, type InferSchemaType, model } from 'mongoose';
+import { Schema, model, type Document, type Types } from 'mongoose';
+
 import validator from 'validator';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 // No need to define TS interface any more. InferSchemaType will determine the type as follows:
-// User {
-//   firstname: string;
-//   lastname: string;
-//   username: string;
-//   email: string;
-//   password: string;
-//   profile: string;
-//   profilePhoto: string;
-//   posts: string[];
-//   postCount: number;
-//   about: string;
-//   isBlocked: boolean;
-//   isAdmin: boolean;
-//   role: string;
-//   viewedBy: Types.ObjectId;
-//   followers: Types.ObjectId;
-//   following: Types.ObjectId;
-//   active: boolean;
-//   resetPasswordToken: string;
-//   resetPasswordExpire: Date;
-// }
+export interface UserDocument extends Document {
+  firstname: string;
+  lastname: string;
+  username: string;
+  email: string;
+  password: string;
+  profile: string;
+  profilePhoto: string;
+  posts: string[];
+  postCount: number;
+  about: string;
+  isBlocked: boolean;
+  isAdmin: boolean;
+  role: string;
+  viewedBy: Types.ObjectId;
+  followers: Types.ObjectId;
+  following: Types.ObjectId;
+  active: boolean;
+  resetPasswordToken: string;
+  resetPasswordExpire: Date;
+  getJwtToken: () => string;
+  comparePassword: (enteredPassword: string) => Promise<boolean>;
+}
 
-const userSchema = new Schema(
+const userSchema = new Schema<UserDocument>(
   {
     firstname: {
       type: String,
@@ -133,5 +138,30 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-type User = InferSchemaType<typeof userSchema>;
-export default model<User>('User', userSchema);
+// Encrypt password before saving user to database
+userSchema.pre('save', async function (this: UserDocument, next) {
+  // Check if password is modified
+  if (!this.isModified('password')) {
+    next();
+  }
+  const hash = await bcrypt.hash(this.password, 10);
+  this.password = hash;
+});
+
+// Compare user password
+userSchema.methods.comparePassword = async function (currEnteredPassword: string) {
+  const passwordMatch = await bcrypt.compare(currEnteredPassword, this.password);
+  return passwordMatch;
+};
+
+// Return JWT token
+userSchema.methods.getJwtToken = function () {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET as string, {
+    expiresIn: process.env.JWT_EXPIRATION_TIME,
+  });
+};
+// type User = InferSchemaType<typeof userSchema>;
+// export default model<User>('User', userSchema);
+const User = model<UserDocument>('User', userSchema);
+
+export default User;
