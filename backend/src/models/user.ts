@@ -26,6 +26,7 @@ export interface UserDocument extends Document {
   resetPasswordToken: string;
   resetPasswordExpire: Date;
   getJwtToken: () => string;
+  comparePassword: (enteredPassword: string) => Promise<boolean>;
 }
 
 const userSchema = new Schema<UserDocument>(
@@ -148,7 +149,7 @@ userSchema.pre('save', async function (this: UserDocument, next) {
 });
 
 // Compare user password
-userSchema.methods.comparePassword = async function (currEnteredPassword: string): Promise<boolean> {
+userSchema.methods.comparePassword = async function (currEnteredPassword: string) {
   const passwordMatch = await bcrypt.compare(currEnteredPassword, this.password);
   return passwordMatch;
 };
