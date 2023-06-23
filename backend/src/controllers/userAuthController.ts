@@ -4,19 +4,13 @@ import asyncHandler from 'express-async-handler';
 import User, { type UserDocument } from '../models/user';
 import { type NextFunction, type Request, type Response } from 'express';
 import ErrorHandler from '../utils/errorHandler';
+import generateToken from '../utils/generateToken';
 
 // @desc Register a new user
 // @route POST /api/v1/users/register
 // @access Public
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const { firstname, lastname, username, profile, email, password } = req.body;
-
-  // const userExists = await User.findOne({ email });
-
-  // if (userExists !== null) {
-  //   res.status(400);
-  //   throw new Error('User already exists');
-  // }
 
   const newUser = await User.create({
     firstname,
@@ -31,12 +25,7 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
     },
   });
 
-  const token = newUser.getJwtToken();
-
-  res.status(201).json({
-    success: true,
-    token,
-  });
+  generateToken(newUser, 201, res);
 });
 
 // @desc: Login a user
@@ -65,20 +54,7 @@ const loginUser = asyncHandler(async (req: Request, res: Response, next: NextFun
     return;
   }
 
-  const token = userFound.getJwtToken();
-
-  const { _id, username, profile } = userFound;
-
-  res.status(200).json({
-    success: true,
-    token,
-    userFound: {
-      _id,
-      email,
-      username,
-      profile,
-    },
-  });
+  generateToken(userFound, 200, res);
 });
 
 export { registerUser, loginUser };
