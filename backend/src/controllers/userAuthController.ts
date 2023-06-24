@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import asyncHandler from 'express-async-handler';
 import { nanoid } from 'nanoid';
-
-// import catchAsyncErrors from '../middlewares/catchAsyncErrors';
-import User, { type UserDocument } from '../models/user';
+import User from '../models/user';
 import { type NextFunction, type Request, type Response } from 'express';
 import ErrorHandler from '../utils/errorHandler';
 import generateToken from '../utils/generateToken';
@@ -66,10 +64,28 @@ const loginUser = asyncHandler(async (req: Request, res: Response, next: NextFun
   generateToken(userFound, 200, res);
 });
 
+// @desc: Logout a user
+// @route: /api/v1/users/logout
+// @access: protected
+
+const logoutUser = asyncHandler(async (req, res, next) => {
+  // To logout is to clear the cookie stored during login/sign up,
+  // hence set token to 'null' and expires it immediately with Date.now() to remove it from the session
+  res.cookie('token', null, {
+    expires: new Date(Date.now()),
+    httpOnly: true,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Logged out successfully',
+  });
+});
+
 // test user protected routes
 
 const protectedUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.json({ data: 'I am authenticated' });
 });
 
-export { registerUser, loginUser, protectedUser };
+export { registerUser, loginUser, protectedUser, logoutUser };
