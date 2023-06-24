@@ -19,7 +19,7 @@ interface JwtPayload {
 const requireAuthentication = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { token } = req.cookies;
   if (!Boolean(token)) {
-    next(new ErrorHandler('Login first to access this resource.', 401));
+    next(new ErrorHandler('Please Login first to access this resource ', 401));
     return;
   }
 
