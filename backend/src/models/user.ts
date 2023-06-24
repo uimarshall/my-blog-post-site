@@ -68,7 +68,7 @@ const userSchema = new Schema<UserDocument>(
     },
     profile: {
       type: String,
-      required: [true, 'Please enter your profile'],
+      required: [true, 'Please enter profile'],
     },
 
     // Store profile photo info in cloudinary
