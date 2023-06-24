@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import asyncHandler from 'express-async-handler';
+import { nanoid } from 'nanoid';
+
 // import catchAsyncErrors from '../middlewares/catchAsyncErrors';
 import User, { type UserDocument } from '../models/user';
 import { type NextFunction, type Request, type Response } from 'express';
@@ -10,7 +12,14 @@ import generateToken from '../utils/generateToken';
 // @route POST /api/v1/users/register
 // @access Public
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
-  const { firstname, lastname, username, profile, email, password } = req.body;
+  const { firstname, lastname, email, password } = req.body;
+
+  // console.log(process.env.CLIENT_URL);
+  // console.log(nanoid());
+
+  const username: string = nanoid();
+  const profile = `${process.env.CLIENT_URL}/profile/${username}`;
+  // console.log(profile);
 
   const newUser = await User.create({
     firstname,
@@ -57,4 +66,10 @@ const loginUser = asyncHandler(async (req: Request, res: Response, next: NextFun
   generateToken(userFound, 200, res);
 });
 
-export { registerUser, loginUser };
+// test user protected routes
+
+const protectedUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  res.json({ data: 'I am authenticated' });
+});
+
+export { registerUser, loginUser, protectedUser };

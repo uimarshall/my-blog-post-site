@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import morganMiddleware from '../logger/morganMiddleware';
 import userRoutes from './routes/userRoutes';
 import errorMiddleware from './middlewares/errorMiddleware';
+import cookieParser from 'cookie-parser';
 
 // import env from './utils/validateEnv';
 
@@ -17,6 +18,7 @@ const app: Express = express();
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 app.use(morganMiddleware);
 app.use(cors()); // Make sure you Enable CORS correctly, or you will get CORS errors.
 
