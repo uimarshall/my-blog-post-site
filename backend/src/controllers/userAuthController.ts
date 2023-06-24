@@ -66,4 +66,10 @@ const loginUser = asyncHandler(async (req: Request, res: Response, next: NextFun
   generateToken(userFound, 200, res);
 });
 
-export { registerUser, loginUser };
+// test user protected routes
+
+const protectedUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  res.json({ data: 'I am authenticated' });
+});
+
+export { registerUser, loginUser, protectedUser };
