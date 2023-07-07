@@ -1,35 +1,14 @@
-import { Schema, model, type Document, type Types } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import crypto from 'crypto';
 
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { type IUser } from '../types/user';
 
 // No need to define TS interface any more. InferSchemaType will determine the type as follows:
-export interface UserDocument extends Document {
-  firstname: string;
-  lastname: string;
-  username: string;
-  email: string;
-  password: string;
-  profile: string;
-  profilePhoto: string;
-  posts: string[];
-  postCount: number;
-  about: string;
-  isBlocked: boolean;
-  isAdmin: boolean;
-  role: string;
-  viewedBy: Types.ObjectId;
-  followers: Types.ObjectId;
-  following: Types.ObjectId;
-  active: boolean;
-  resetPasswordToken: string;
-  resetPasswordExpire: Date;
-  getJwtToken: () => string;
-  comparePassword: (enteredPassword: string) => Promise<boolean>;
-}
 
-const userSchema = new Schema<UserDocument>(
+const userSchema = new Schema<IUser>(
   {
     firstname: {
       type: String,
@@ -139,7 +118,7 @@ const userSchema = new Schema<UserDocument>(
 );
 
 // Encrypt password before saving user to database
-userSchema.pre('save', async function (this: UserDocument, next) {
+userSchema.pre('save', async function (this: IUser, next) {
   // Check if password is modified
   if (!this.isModified('password')) {
     next();
@@ -160,8 +139,23 @@ userSchema.methods.getJwtToken = function () {
     expiresIn: process.env.JWT_EXPIRATION_TIME,
   });
 };
+
+// Generate password reset token
+
+userSchema.methods.getResetPasswordToken = function () {
+  // Generate token
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  // Hash/encrypt token and set to resetPasswordToken
+  // This is saved in the database
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+  // Set token expire time in seconds(30mins)
+  this.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
+  return resetToken;
+};
 // type User = InferSchemaType<typeof userSchema>;
 // export default model<User>('User', userSchema);
-const User = model<UserDocument>('User', userSchema);
+const User = model<IUser>('User', userSchema);
 
 export default User;

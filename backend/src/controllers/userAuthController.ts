@@ -5,6 +5,8 @@ import User from '../models/user';
 import { type NextFunction, type Request, type Response } from 'express';
 import ErrorHandler from '../utils/errorHandler';
 import generateToken from '../utils/generateToken';
+import logger from '../../logger/logger';
+import sendEmail from '../utils/sendEmail';
 
 // @desc Register a new user
 // @route POST /api/v1/users/register
@@ -82,10 +84,61 @@ const logoutUser = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc: Forgot Password
+// @route: /api/v1/users/password/forgot
+// @access: protected
+
+const forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+  const userFound = await User.findOne({ email });
+  if (userFound == null) {
+    next(new ErrorHandler(`User with this email: ${email} not found`, 404));
+    return;
+  }
+  // Get reset token
+  const resetToken = userFound.getResetPasswordToken();
+
+  // save the token to the user
+
+  await userFound.save({ validateBeforeSave: false });
+
+  // Create reset password url
+  // req.protocol=https or http
+  const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/users/password/reset/${resetToken}`;
+
+  // const resetUrl = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
+
+  // Message to user
+  const message = `Your password reset token is as follows:\n\n${resetUrl}\n\nIf you have not requested this email, then ignore it!`;
+
+  try {
+    await sendEmail({
+      email: userFound.email,
+      subject: 'Quint Password Recovery',
+      message,
+    });
+    res.status(200).json({
+      success: true,
+      message: `Email sent to: ${userFound.email}`,
+    });
+  } catch (error) {
+    userFound.resetPasswordToken = undefined;
+    userFound.resetPasswordExpire = undefined;
+    // We cannot save to db if error
+    await userFound.save({ validateBeforeSave: false });
+    if (error instanceof Error) {
+      // ✅ TypeScript knows err is Error
+      next(new ErrorHandler(error.message, 500));
+    } else {
+      logger.error('Unexpected error', error);
+    }
+  }
+});
+
 // test user protected routes
 
 const protectedUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.json({ data: 'I am authenticated' });
 });
 
-export { registerUser, loginUser, protectedUser, logoutUser };
+export { registerUser, loginUser, protectedUser, logoutUser, forgotPassword };
