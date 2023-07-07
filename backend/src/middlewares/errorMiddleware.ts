@@ -41,6 +41,11 @@ const errorHandler = (err: ErrorHandler, req: Request, res: Response, next: Next
       const message = 'Web token is expired. Try Again!!!';
       error = new ErrorHandler(message, 400);
     }
+    // Handling wrong JWT Error
+    if (err.name === 'JsonWebTokenError') {
+      const message = 'JSON Web token is invalid. Try Again!!!';
+      error = new ErrorHandler(message, 400);
+    }
 
     res.status(error.statusCode).json({
       success: false,
