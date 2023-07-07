@@ -7,6 +7,7 @@ import ErrorHandler from '../utils/errorHandler';
 import generateToken from '../utils/generateToken';
 import logger from '../../logger/logger';
 import sendEmail from '../utils/sendEmail';
+import crypto from 'crypto';
 
 // @desc Register a new user
 // @route POST /api/v1/users/register
@@ -135,10 +136,45 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
+// @desc: Password Reset
+// @route: /api/v1/users/password/reset/:token
+// @access: protected
+
+const resetPassword = asyncHandler(async (req, res, next): Promise<void> => {
+  // Hash url token
+  const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+  // Compare the hashed token to the one stored in the Db
+  const userFound = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!userFound) {
+    next(new ErrorHandler('Password reset token is invalid or has expired', 400));
+    return;
+  }
+
+  if (req.body.password !== req.body.confirmPassword) {
+    next(new ErrorHandler('Password does not match!', 400));
+    return;
+  }
+
+  //  If user found - Setup new password
+  userFound.password = req.body.password;
+  // Destroy the token by setting it to undefined
+  userFound.resetPasswordToken = undefined;
+  userFound.resetPasswordExpire = undefined;
+
+  await userFound.save();
+
+  // Send token again
+  generateToken(userFound, 200, res);
+});
+
 // test user protected routes
 
 const protectedUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.json({ data: 'I am authenticated' });
 });
 
-export { registerUser, loginUser, protectedUser, logoutUser, forgotPassword };
+export { registerUser, loginUser, protectedUser, logoutUser, forgotPassword, resetPassword };
