@@ -11,6 +11,13 @@ import logger from '../../logger/logger';
 import sendEmail from '../utils/sendEmail';
 import crypto from 'crypto';
 
+export interface INewUser {
+  firstname: string;
+  lastname: string;
+  email: string;
+  profile: string;
+}
+
 // @desc Register a new user
 // @route POST /api/v1/users/register
 // @access Public
@@ -208,6 +215,29 @@ const updatePassword = asyncHandler(async (req: Request, res: Response, next: Ne
   generateToken(userFound, 200, res);
 });
 
+// @desc: Update user profile/user-details
+// @route: /api/v1/users/me/update
+// @access: protected
+
+const updateProfile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const { firstname, email, lastname, profile } = req.body;
+
+  const newUserData = { firstname, email, lastname, profile };
+
+  // Update profile photo: TODO
+
+  const userFound = await User.findByIdAndUpdate(req.user.id, newUserData, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false,
+  });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: userFound,
+  });
+});
+
 // test user protected routes
 
 const protectedUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -223,4 +253,5 @@ export {
   resetPassword,
   getUserProfile,
   updatePassword,
+  updateProfile,
 };
