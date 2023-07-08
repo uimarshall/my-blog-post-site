@@ -7,6 +7,7 @@ import {
   protectedUser,
   registerUser,
   resetPassword,
+  updatePassword,
 } from '../controllers/userAuthController';
 import { requireAdminRole, requireAuthentication } from '../middlewares/authMiddleware';
 
@@ -21,6 +22,8 @@ router.post('/password/forgot', forgotPassword);
 router.put('/password/reset/:token', resetPassword);
 // Currently Login user-details or profile
 router.get('/me', requireAuthentication, getUserProfile);
+// Update password
+router.put('/password/update', requireAuthentication, updatePassword);
 router.get('/auth', requireAuthentication, requireAdminRole, protectedUser);
 
 export default router;

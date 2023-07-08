@@ -189,10 +189,38 @@ const getUserProfile = asyncHandler(async (req: Request, res: Response, next: Ne
   });
 });
 
+// @desc: Update password
+// @route: /api/v1/users/password/update
+// @access: protected
+
+const updatePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const userFound: any = await User.findById(req.user.id).select('+password');
+  // Check previous user password
+  const isMatch = await userFound.comparePassword(req.body.oldPassword);
+  if (!isMatch) {
+    next(new ErrorHandler('Old Password is incorrect', 400));
+    return;
+  }
+  // Set the new password to what is coming from the req body.
+  userFound.password = req.body.password;
+  await userFound.save();
+
+  generateToken(userFound, 200, res);
+});
+
 // test user protected routes
 
 const protectedUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.json({ data: 'I am authenticated' });
 });
 
-export { registerUser, loginUser, protectedUser, logoutUser, forgotPassword, resetPassword, getUserProfile };
+export {
+  registerUser,
+  loginUser,
+  protectedUser,
+  logoutUser,
+  forgotPassword,
+  resetPassword,
+  getUserProfile,
+  updatePassword,
+};
