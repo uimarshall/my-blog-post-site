@@ -3,6 +3,8 @@ import asyncHandler from 'express-async-handler';
 import { nanoid } from 'nanoid';
 import User from '../models/user';
 import { type NextFunction, type Request, type Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+
 import ErrorHandler from '../utils/errorHandler';
 import generateToken from '../utils/generateToken';
 import logger from '../../logger/logger';
@@ -171,10 +173,26 @@ const resetPassword = asyncHandler(async (req, res, next): Promise<void> => {
   generateToken(userFound, 200, res);
 });
 
+// @desc: Get currently logged in user details
+// @route: /api/v1/users/me
+// @access: protected
+
+/* TODO: OMIT THE TYPE ANNOTATION FOR THE req object will throw an error in the 'req.user.id'- Write an article on this on how to solve the error by simply passing the type annotation to the req object as 'Request'. */
+
+const getUserProfile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  // console.log(req.user);
+  const userFound = await User.findById(req.user.id);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: userFound,
+  });
+});
+
 // test user protected routes
 
 const protectedUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.json({ data: 'I am authenticated' });
 });
 
-export { registerUser, loginUser, protectedUser, logoutUser, forgotPassword, resetPassword };
+export { registerUser, loginUser, protectedUser, logoutUser, forgotPassword, resetPassword, getUserProfile };

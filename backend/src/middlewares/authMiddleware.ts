@@ -26,7 +26,7 @@ const requireAuthentication = asyncHandler(async (req: Request, res: Response, n
   // const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
   const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
 
-  req.user = await User.findById(decoded.id);
+  req.user = await User.findById(decoded.id); // req.user is now available in all protected routes, so we can use it to get the user id, name, email, etc. and use it to get the user profile. See backend\src\controllers\userAuthController.ts for an example.
 
   next();
 });
