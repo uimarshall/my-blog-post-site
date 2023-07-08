@@ -11,6 +11,13 @@ import logger from '../../logger/logger';
 import sendEmail from '../utils/sendEmail';
 import crypto from 'crypto';
 
+export interface INewUser {
+  firstname: string;
+  lastname: string;
+  email: string;
+  profile: string;
+}
+
 // @desc Register a new user
 // @route POST /api/v1/users/register
 // @access Public
@@ -189,10 +196,62 @@ const getUserProfile = asyncHandler(async (req: Request, res: Response, next: Ne
   });
 });
 
+// @desc: Update password
+// @route: /api/v1/users/password/update
+// @access: protected
+
+const updatePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const userFound: any = await User.findById(req.user.id).select('+password');
+  // Check previous user password
+  const isMatch = await userFound.comparePassword(req.body.oldPassword);
+  if (!isMatch) {
+    next(new ErrorHandler('Old Password is incorrect', 400));
+    return;
+  }
+  // Set the new password to what is coming from the req body.
+  userFound.password = req.body.password;
+  await userFound.save();
+
+  generateToken(userFound, 200, res);
+});
+
+// @desc: Update user profile/user-details
+// @route: /api/v1/users/me/update
+// @access: protected
+
+const updateProfile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const { firstname, email, lastname, profile } = req.body;
+
+  const newUserData = { firstname, email, lastname, profile };
+
+  // Update profile photo: TODO
+
+  const userFound = await User.findByIdAndUpdate(req.user.id, newUserData, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false,
+  });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: userFound,
+  });
+});
+
 // test user protected routes
 
 const protectedUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.json({ data: 'I am authenticated' });
 });
 
-export { registerUser, loginUser, protectedUser, logoutUser, forgotPassword, resetPassword, getUserProfile };
+export {
+  registerUser,
+  loginUser,
+  protectedUser,
+  logoutUser,
+  forgotPassword,
+  resetPassword,
+  getUserProfile,
+  updatePassword,
+  updateProfile,
+};
