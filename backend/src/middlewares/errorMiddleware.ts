@@ -3,7 +3,7 @@ import { type NextFunction, type Request, type Response } from 'express';
 import ErrorHandler from '../utils/errorHandler';
 
 const errorHandler = (err: ErrorHandler, req: Request, res: Response, next: NextFunction): void => {
-  err.statusCode = err.statusCode || 500;
+  err.statusCode = err.statusCode ?? 500;
   if (process.env.NODE_ENV === 'DEVELOPMENT') {
     res.status(err.statusCode).json({
       success: false,
@@ -47,7 +47,7 @@ const errorHandler = (err: ErrorHandler, req: Request, res: Response, next: Next
       error = new ErrorHandler(message, 400);
     }
 
-    res.status(error.statusCode).json({
+    res.status(error.statusCode as number).json({
       success: false,
       message: error.message || 'Internal Server Error',
     });
